@@ -38,10 +38,10 @@ RAG_TEST/
 ├── app/
 │   ├── ingestion/        # Ingestion PDF, splitting, embeddings, vectorstore
 │   ├── rag/              # Retriever, Generator, Pipeline RAG
-│   └── ui/               # Interface Desktop (CustomTkinter)
+│   └── ui/               # Interface Desktop 
 │
-├── documents/            # Contient vos PDF (non versionné)
-├── db/                   # Base Chroma (non versionnée)
+├── documents/            # Contient vos PDF 
+├── db/                   # Base Chroma 
 │
 ├── main_ingest.py        # Script qui ingère le PDF
 ├── main.py               # Lance l’interface graphique
