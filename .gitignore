@@ -1,0 +1,41 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+venv/
+env/
+
+# --- IDE / Editors ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Log files ---
+*.log
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+
+# --- Chroma DB ---
+db/
+chroma/
+*.sqlite3
+
+# --- Documents (PDF ingérés) ---
+documents/*.pdf
+documents/*.txt
+documents/*.docx
+
+# --- Cache ---
+cache/
+tmp/
+*.tmp
+
+# --- Ollama downloaded models (just in case) ---
+~/.ollama/models/
+ollama_models/
