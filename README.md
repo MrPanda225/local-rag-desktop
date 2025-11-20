@@ -56,7 +56,7 @@ RAG_TEST/
 ### 1. Cloner le projet
 
 ```bash
-git clone <TON_REPO_GITHUB>
+git clone https://github.com/MrPanda225/local-rag-desktop.git
 cd RAG_TEST
 ```
 
