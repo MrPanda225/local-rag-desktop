@@ -131,9 +131,3 @@ You can now ask questions about your document directly from the interface.
 - Chat bubble layout
 - Response export
 - REST API version (FastAPI)
-
----
-
-## License
-
-Free to use.
