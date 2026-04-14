@@ -1,84 +1,67 @@
+# Local RAG Desktop
+
+A fully offline desktop application for querying your documents using a local AI model — no data leaves your machine.
 
 ---
 
-# 🤖 Assistant IA – RAG Test
+## Overview
 
-Application Desktop locale qui utilise un modèle Ollama + un pipeline RAG pour interroger vos documents hors-ligne.
-
----
-
-## 🚀 Présentation
-
-Ce projet permet de :
-
-* Charger un document PDF
-* L’ingérer en base vectorielle localement (Chroma)
-* Utiliser Ollama pour générer des réponses pertinentes
-* Poser des questions via une interface graphique moderne
-* Fonctionner **100% hors-ligne**, sans envoyer aucune donnée sur Internet
+Local RAG Desktop combines a RAG pipeline with a local language model (via Ollama) to let you ask questions about your PDF documents without any internet connection. Built for privacy, speed, and clarity.
 
 ---
 
-## 🧠 Fonctionnalités principales
+## What it does
 
-* 🔍 **RAG (Retrieval Augmented Generation)**
-* 📄 Ingestion automatique de PDF
-* 💬 Interface Desktop claire moderne (CustomTkinter)
-* ⚡ Moteur IA local (Ollama – Mistral, Llama3, etc.)
-* 🔒 Respect de la vie privée (tout reste en local)
-* 🧱 Architecture propre (KISS, DRY, Clean Code)
+- Loads and ingests PDF documents into a local vector database (Chroma)
+- Retrieves relevant content based on your question
+- Generates accurate answers using a local Ollama model (Mistral, Llama3, etc.)
+- Runs entirely offline — no API calls, no data sent externally
 
 ---
 
-## 📁 Structure du projet
+## Architecture
 
 ```
 RAG_TEST/
 │
 ├── app/
-│   ├── ingestion/        # Ingestion PDF, splitting, embeddings, vectorstore
-│   ├── rag/              # Retriever, Generator, Pipeline RAG
-│   └── ui/               # Interface Desktop 
+│   ├── ingestion/        # PDF loading, chunking, embeddings, vector store
+│   ├── rag/              # Retriever, generator, RAG pipeline
+│   └── ui/               # Desktop interface
 │
-├── documents/            # Contient vos PDF 
-├── db/                   # Base Chroma 
+├── documents/            # Drop your PDFs here
+├── db/                   # Chroma vector store
 │
-├── main_ingest.py        # Script qui ingère le PDF
-├── main.py               # Lance l’interface graphique
+├── main_ingest.py        # Ingestion entry point
+├── main.py               # Application entry point
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🔧 Installation
+## Installation
 
-### 1. Cloner le projet
+**1. Clone the repository**
 
 ```bash
 git clone https://github.com/MrPanda225/local-rag-desktop.git
 cd RAG_TEST
 ```
 
-### 2. Créer et activer un environnement virtuel
+**2. Create and activate a virtual environment**
 
 ```bash
 python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
 ```
 
-* Windows :
-
-  ```bash
-  venv\Scripts\activate
-  ```
-
-* Linux/macOS :
-
-  ```bash
-  source venv/bin/activate
-  ```
-
-### 3. Installer les dépendances
+**3. Install dependencies**
 
 ```bash
 pip install -r requirements.txt
@@ -86,12 +69,9 @@ pip install -r requirements.txt
 
 ---
 
-## 🤖 Installation d’Ollama
+## Ollama Setup
 
-Télécharger Ollama :
-👉 [https://ollama.com/download](https://ollama.com/download)
-
-Puis installer les modèles utilisés :
+Download Ollama at [https://ollama.com/download](https://ollama.com/download), then pull the required models:
 
 ```bash
 ollama pull mistral
@@ -100,82 +80,70 @@ ollama pull nomic-embed-text
 
 ---
 
-## 📄 Ajouter vos documents
+## Usage
 
-Placez vos fichiers dans le dossier :
+**Step 1 — Add your documents**
+
+Place your PDF files in the `documents/` folder:
 
 ```
-documents/
+documents/your_file.pdf
 ```
 
-Exemple :
-`documents/mon_document.pdf`
-
----
-
-## 🧪 Étape 1 — Lancer l’ingestion
+**Step 2 — Run ingestion**
 
 ```bash
 python main_ingest.py
 ```
 
-Cela :
+This loads the PDF, splits it into chunks, generates embeddings, and stores them in the local vector database.
 
-* charge le PDF
-* découpe en chunks
-* génère les embeddings
-* enregistre la base vectorielle
-
----
-
-## 💬 Étape 2 — Lancer l’application IA
+**Step 3 — Launch the application**
 
 ```bash
 python main.py
 ```
 
-Vous pourrez poser des questions sur votre document.
+You can now ask questions about your document directly from the interface.
 
 ---
 
-## 🎨 Interface
+## Tech Stack
 
-Interface moderne, claire, avec :
-
-* fond blanc
-* header orange dynamique
-* champ de saisie et bouton stylés
-* zone de chat avec réponses IA
-
----
-
-## 🛠️ Technologies utilisées
-
-* Python 3.10+
-* LangChain
-* ChromaDB
-* Ollama
-* CustomTkinter
-* PyPDF
-* Nomic Embeddings
-* Mistral / Llama3
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.10+ |
+| RAG Framework | LangChain |
+| Vector Store | ChromaDB |
+| LLM Runtime | Ollama (Mistral, Llama3) |
+| Embeddings | Nomic Embed Text |
+| PDF Processing | PyPDF |
+| Desktop UI | CustomTkinter |
 
 ---
 
-## 📌 Améliorations possibles
+## Possible improvements
 
-* Import PDF depuis l’UI
-* Historique des conversations
-* Mode sombre / clair
-* Choix du modèle dans l’interface
-* Bulles de chat
-* Export des réponses
-* Version API (FastAPI)
+- PDF import directly from the UI
+- Conversation history
+- Dark / light mode toggle
+- Model selection from the interface
+- Chat bubble layout
+- Response export
+- REST API version (FastAPI)
+
+---
+
+## License
+
+Free to use.
+```
 
 ---
 
-## 📄 Licence
+**Ce que j'ai changé :**
 
-Libre d'utilisation.
-
----
+- Titre sans emoji, sans "Test" — un projet en prod ne s'appelle pas "test"
+- "Overview" remplace la liste à puces d'intro — ça lit comme un vrai projet, pas un pitch deck
+- La table Tech Stack est plus lisible qu'une liste de badges dans un README de projet
+- Le ton est factuel et direct, sans adjectifs superflus comme "moderne" et "claire"
