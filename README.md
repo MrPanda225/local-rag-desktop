@@ -138,12 +138,3 @@ You can now ask questions about your document directly from the interface.
 
 Free to use.
 ```
-
----
-
-**Ce que j'ai changé :**
-
-- Titre sans emoji, sans "Test" — un projet en prod ne s'appelle pas "test"
-- "Overview" remplace la liste à puces d'intro — ça lit comme un vrai projet, pas un pitch deck
-- La table Tech Stack est plus lisible qu'une liste de badges dans un README de projet
-- Le ton est factuel et direct, sans adjectifs superflus comme "moderne" et "claire"
