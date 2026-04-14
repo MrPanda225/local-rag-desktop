@@ -137,4 +137,3 @@ You can now ask questions about your document directly from the interface.
 ## License
 
 Free to use.
-```
