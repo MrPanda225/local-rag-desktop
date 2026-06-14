@@ -1,4 +1,4 @@
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader
 from pathlib import Path
 from typing import List
 
@@ -6,6 +6,7 @@ from typing import List
 class DocumentLoader:
     """
     Charge tous les fichiers PDF d'un dossier et renvoie une liste de documents LangChain.
+    Utilise PyMuPDF pour une extraction fidèle du texte et de la mise en page.
     """
 
     def __init__(self, folder: str):
@@ -18,7 +19,7 @@ class DocumentLoader:
         documents = []
         for file in self.folder.iterdir():
             if file.suffix.lower() == ".pdf":
-                loader = PyPDFLoader(str(file))
+                loader = PyMuPDFLoader(str(file))
                 docs = loader.load()
                 documents.extend(docs)
 
