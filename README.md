@@ -1,128 +1,128 @@
 # Local RAG Desktop
 
-Application desktop 100% locale pour interroger des documents avec une IA embarquée, sans envoyer de données vers le cloud.
+A fully local desktop application for querying your documents with on-device AI, without sending data to the cloud.
 
-Local RAG Desktop transforme une collection de PDF en base de connaissances consultable sur votre machine. L'objectif est simple : obtenir des réponses fiables, sourcées et rapides, tout en gardant vos documents et vos échanges en local.
+Local RAG Desktop turns a collection of PDFs into a searchable knowledge base on your machine. The goal is simple: deliver reliable, cited, and fast answers while keeping both your documents and your conversations local.
 
-## Pourquoi ce projet
+## Why this project
 
-La plupart des assistants documentaires promettent de la précision, mais reposent souvent sur des API externes ou sur des réponses trop générales. Ce projet prend le contre-pied : il privilégie la confidentialité, la traçabilité et la pertinence.
+Most document assistants promise accuracy, but often depend on external APIs or produce answers that are too generic. This project takes the opposite approach: it prioritizes privacy, traceability, and relevance.
 
-Il est conçu pour les cas d'usage où la maîtrise des données n'est pas négociable : documentation interne, notes de recherche, corpus métier, rapports PDF ou bases de connaissances personnelles.
+It is built for use cases where data control is non-negotiable: internal documentation, research notes, domain-specific corpora, PDF reports, or personal knowledge bases.
 
-## Ce que l'application apporte
+## What the application delivers
 
-- Exécution 100% locale via Ollama.
-- Aucune clé API requise.
-- Aucune donnée transmise à un service tiers.
-- Réponses appuyées sur des extraits réellement retrouvés dans les documents.
-- Gestion des questions de suivi grâce au contexte conversationnel.
-- Pipeline RAG enrichi avec recherche hybride, reranking et récupération parent-child.
+- 100% local execution through Ollama.
+- No API keys required.
+- No data sent to third-party services.
+- Answers grounded in passages actually retrieved from your documents.
+- Natural follow-up questions supported through conversational context.
+- An advanced RAG pipeline with hybrid search, reranking, and parent-child retrieval.
 
-## Fonctionnement
+## How it works
 
-L'application suit une chaîne de traitement pensée pour limiter les hallucinations et améliorer la précision des réponses.
+The application follows a retrieval pipeline designed to reduce hallucinations and improve answer quality.
 
-### 1. Ingestion des documents
+### 1. Document ingestion
 
-Les fichiers PDF déposés dans `documents/` sont lus, nettoyés et découpés en segments exploitables. Le système génère ensuite des embeddings et stocke les représentations dans une base vectorielle locale.
+PDF files placed in `documents/` are read, cleaned, and split into usable segments. The system then generates embeddings and stores the representations in a local vector database.
 
-### 2. Recherche hybride
+### 2. Hybrid search
 
-Lorsqu'une question est posée, le moteur combine deux approches complémentaires :
+When a question is asked, the engine combines two complementary approaches:
 
-- La recherche sémantique pour retrouver les passages proches du sens de la question.
-- La recherche lexicale BM25 pour capter les mots-clés exacts, noms propres et expressions spécifiques.
+- Semantic search to retrieve passages close to the meaning of the query.
+- BM25 lexical search to capture exact keywords, named entities, and specific expressions.
 
-Cette combinaison améliore le rappel sans sacrifier la précision.
+This combination improves recall without sacrificing precision.
 
 ### 3. Reranking
 
-Les premiers résultats récupérés ne sont pas tous aussi utiles. Un reranker réévalue les extraits en fonction de la requête et conserve uniquement les plus pertinents pour la génération finale.
+The first retrieved results are not equally useful. A reranker reevaluates the excerpts against the query and keeps only the most relevant passages for final generation.
 
 ### 4. Parent-child chunking
 
-Le système indexe de petits segments pour retrouver l'information avec finesse, mais transmet à l'IA un bloc plus large lors de la réponse. Cela permet de préserver le contexte sans diluer la pertinence.
+The system indexes small segments for precise retrieval, but sends a larger text block to the model when generating an answer. This preserves context without weakening relevance.
 
-### 5. Reformulation des requêtes
+### 5. Query rewriting
 
-Pour les questions de suivi, une reformulation transforme une requête implicite en question autonome. Le moteur comprend ainsi plus facilement les références contextuelles et maintient une conversation naturelle.
+For follow-up questions, a rewriting step converts an implicit request into a standalone query. This helps the system resolve contextual references and maintain a natural conversation flow.
 
-### 6. Génération contrainte
+### 6. Constrained generation
 
-Le modèle de génération répond uniquement à partir du contexte fourni. Si l'information n'apparaît pas dans les documents récupérés, l'application doit l'indiquer explicitement au lieu d'inventer une réponse.
+The generation model answers only from the supplied context. If the information does not appear in the retrieved documents, the application must say so explicitly instead of inventing an answer.
 
-## Fonctionnalités
+## Features
 
-- Réponses sourcées à partir des documents chargés.
-- Mémoire conversationnelle pour les relances.
-- Fonctionnement hors ligne sur poste local.
-- Interface desktop en CustomTkinter.
-- Stockage local de la base vectorielle avec ChromaDB.
-- Support d'un pipeline RAG avancé prêt à être étendu.
+- Source-grounded answers based on uploaded documents.
+- Conversational memory for follow-up questions.
+- Fully offline execution on a local machine.
+- Desktop interface built with CustomTkinter.
+- Local vector storage powered by ChromaDB.
+- An advanced RAG pipeline that is ready to extend.
 
-## Architecture du projet
+## Project architecture
 
 ```text
 local-rag-desktop/
 │
 ├── app/
-│   ├── config.py              # Configuration des modèles (LLM et embeddings)
+│   ├── config.py              # Model configuration (LLM and embeddings)
 │   ├── ingestion/
-│   │   ├── document_loader.py # Extraction PDF avec PyMuPDF
-│   │   ├── text_splitter.py   # Logique de découpage parent-child
-│   │   ├── embedder.py        # Génération des embeddings via Ollama
-│   │   ├── vector_store.py    # Gestion de ChromaDB
-│   │   └── ingest.py          # Pipeline d'ingestion
+│   │   ├── document_loader.py # PDF extraction with PyMuPDF
+│   │   ├── text_splitter.py   # Parent-child chunking logic
+│   │   ├── embedder.py        # Embedding generation through Ollama
+│   │   ├── vector_store.py    # ChromaDB management
+│   │   └── ingest.py          # Ingestion pipeline
 │   │
 │   ├── rag/
-│   │   ├── retriever.py       # Recherche hybride, reranking et expansion parent
-│   │   ├── generator.py       # Génération et reformulation des requêtes
-│   │   └── rag_pipeline.py    # Orchestration et garde-fous anti-hallucination
+│   │   ├── retriever.py       # Hybrid search, reranking, and parent expansion
+│   │   ├── generator.py       # Generation and query rewriting
+│   │   └── rag_pipeline.py    # Orchestration and anti-hallucination guardrails
 │   │
 │   └── ui/
-│       └── desktop.py         # Interface desktop CustomTkinter
+│       └── desktop.py         # CustomTkinter desktop interface
 │
-├── documents/                 # Déposez vos PDF ici
-├── db/                        # Base vectorielle locale générée automatiquement
+├── documents/                 # Drop your PDFs here
+├── db/                        # Local vector database generated automatically
 │
-├── main_ingest.py             # Étape 1 : ingestion des documents
-├── main.py                    # Étape 2 : lancement de l'application
+├── main_ingest.py             # Step 1: ingest documents
+├── main.py                    # Step 2: launch the application
 ├── requirements.txt
 └── README.md
 ```
 
-## Stack technique
+## Tech stack
 
-| Couche | Technologie | Rôle |
-|--------|-------------|------|
-| Langage | Python 3.10+ | Logique applicative |
-| Orchestration RAG | LangChain | Construction du pipeline |
-| Base vectorielle | ChromaDB | Stockage et recherche vectorielle |
-| Recherche lexicale | BM25 (`rank-bm25`) | Correspondance exacte de mots-clés |
-| Reranking | FlashRank | Tri des extraits par pertinence |
-| Runtime LLM | Ollama | Exécution locale des modèles |
-| Modèle de génération | Qwen 2.5 7B | Réponses et reformulation |
-| Modèle d'embeddings | Nomic Embed Text | Vectorisation des textes |
-| Traitement PDF | PyMuPDF | Extraction de texte |
-| Interface | CustomTkinter | Application desktop |
+| Layer | Technology | Role |
+|-------|------------|------|
+| Language | Python 3.10+ | Application logic |
+| RAG orchestration | LangChain | Pipeline construction |
+| Vector database | ChromaDB | Vector storage and retrieval |
+| Lexical search | BM25 (`rank-bm25`) | Exact keyword matching |
+| Reranking | FlashRank | Sorting passages by relevance |
+| LLM runtime | Ollama | Local model execution |
+| Generation model | Qwen 2.5 7B | Answer generation and query rewriting |
+| Embedding model | Nomic Embed Text | Text vectorization |
+| PDF processing | PyMuPDF | Text extraction |
+| Interface | CustomTkinter | Desktop application |
 
 ## Installation
 
-### 1. Cloner le dépôt
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/MrPanda225/local-rag-desktop.git
 cd local-rag-desktop
 ```
 
-### 2. Créer un environnement virtuel
+### 2. Create a virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-### 3. Activer l'environnement
+### 3. Activate the environment
 
 **Windows**
 
@@ -136,56 +136,55 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 4. Installer les dépendances
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Configuration d'Ollama
+## Ollama setup
 
-Installez [Ollama](https://ollama.com/download), puis téléchargez les modèles nécessaires.
+Install [Ollama](https://ollama.com/download), then download the required models.
 
 ```bash
 ollama pull qwen2.5:7b-instruct-q4_K_M
 ollama pull nomic-embed-text
 ```
 
-## Démarrage rapide
+## Quick start
 
-### 1. Ajouter des documents
+### 1. Add documents
 
-Placez vos fichiers PDF dans le dossier `documents/`.
+Place your PDF files in the `documents/` folder.
 
-### 2. Lancer l'ingestion
+### 2. Run ingestion
 
 ```bash
 python main_ingest.py
 ```
 
-Cette étape extrait le texte, construit les segments parent-child, calcule les embeddings et alimente la base locale `db/`.
+This step extracts text, builds parent-child chunks, computes embeddings, and fills the local `db/` database.
 
-### 3. Ouvrir l'application
+### 3. Launch the application
 
 ```bash
 python main.py
 ```
 
-Vous pouvez ensuite poser une question, demander une précision ou enchaîner avec une relance. Les réponses s'appuient sur les passages réellement trouvés dans vos documents.
+You can then ask a question, request clarification, or continue with follow-up prompts. Answers are grounded strictly in passages retrieved from your documents.
 
-## Cas d'usage
+## Use cases
 
-- Interroger une base de PDF métier sans dépendre d'un service cloud.
-- Explorer une documentation technique locale avec citations de sources.
-- Construire un assistant documentaire privé pour la recherche ou l'entreprise.
-- Valider rapidement des informations dans un corpus spécialisé.
+- Query a domain-specific PDF collection without relying on a cloud service.
+- Explore local technical documentation with cited answers.
+- Build a private document assistant for research or internal teams.
+- Validate information quickly inside a specialized corpus.
 
 ## Roadmap
 
-- [ ] Ajouter un mode sombre et un mode clair.
-- [ ] Améliorer l'affichage des conversations avec des bulles de chat.
-- [ ] Permettre l'import de PDF directement depuis l'interface.
-- [ ] Ajouter le streaming des réponses.
-- [ ] Intégrer un pipeline OCR pour les PDF scannés.
-- [ ] Exposer une API FastAPI pour une intégration web.
-
+- [ ] Add dark mode and light mode.
+- [ ] Improve conversation rendering with chat bubbles.
+- [ ] Allow PDF import directly from the interface.
+- [ ] Add streaming responses.
+- [ ] Integrate an OCR pipeline for scanned PDFs.
+- [ ] Expose a FastAPI wrapper for web integration.
