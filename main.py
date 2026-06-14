@@ -1,4 +1,4 @@
-# main.py
+"""Main entry point for the RAG Desktop application."""
 from app.rag.rag_pipeline import RAGPipeline
 from app.ui.desktop import RAGDesktopApp
 

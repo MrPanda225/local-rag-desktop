@@ -1,3 +1,4 @@
+"""Entry point for the document ingestion pipeline."""
 from app.ingestion.ingest import run_ingestion
 
 if __name__ == "__main__":

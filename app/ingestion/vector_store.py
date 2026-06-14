@@ -1,27 +1,21 @@
+"""Module for managing the ChromaDB vector store."""
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from langchain_community.vectorstores import Chroma
 
 
-class VectorStore:
-    """Gère le store vectoriel Chroma persisté sur disque."""
+class VectorStore:  # pylint: disable=too-few-public-methods
+    """Manages the persistent Chroma vector store."""
 
     def __init__(self, persist_dir: str = "db"):
         self.persist_dir = persist_dir
 
-    def create(self, documents: List, embeddings) -> None:
+    def create(self, documents: List, embeddings, doc_ids: Optional[List[str]] = None) -> None:
         """
-        Remplace le store vectoriel à persist_dir par les documents fournis.
-
-        Supprime d'abord le store existant à persist_dir : rappeler cette
-        méthode avec des documents mis à jour ne duplique donc pas les
-        entrées précédentes.
-
-        Lève:
-            OSError: si le dossier du store existant ne peut pas être
-                supprimé (par ex. l'app desktop tourne et le garde ouvert).
+        Replace the vector store at persist_dir with the provided documents.
+        Raises OSError if the existing directory cannot be removed.
         """
         store_path = Path(self.persist_dir)
         if store_path.exists():
@@ -36,5 +30,6 @@ class VectorStore:
         Chroma.from_documents(
             documents=documents,
             embedding=embeddings,
+            ids=doc_ids,
             persist_directory=self.persist_dir,
         )

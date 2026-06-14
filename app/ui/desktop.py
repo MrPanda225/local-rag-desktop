@@ -1,16 +1,17 @@
+"""Desktop UI module using CustomTkinter."""
 import os
 import threading
 from pathlib import Path
 from typing import Optional
 
+from tkinter import END  # pylint: disable=wrong-import-order
+
 import customtkinter as ctk
-from tkinter import END
 from PIL import Image
 from langchain_core.documents import Document
 
 from app.rag.rag_pipeline import RAGPipeline
 
-# Jetons de couleur (MD3 : pas de hex brut dans les widgets)
 COLOR_PRIMARY = "#FF7A00"
 COLOR_PRIMARY_HOVER = "#E86800"
 COLOR_SURFACE = "#FFFFFF"
@@ -24,13 +25,11 @@ SPINNER_FRAME_COUNT = 12
 SPINNER_INTERVAL_MS = 80
 
 
-class RAGDesktopApp:
-    """Interface desktop : capture les requêtes et affiche les réponses du RAG."""
+class RAGDesktopApp:  # pylint: disable=too-many-instance-attributes
+    """Desktop interface: asks a question and displays the RAG response."""
 
     def __init__(self, rag_pipeline: Optional[RAGPipeline] = None):
         ctk.set_appearance_mode("light")
-
-        # Injection de dépendance : on instancie le pipeline uniquement si rien n'est fourni
         self.rag = rag_pipeline or RAGPipeline()
 
         self.app = ctk.CTk()
@@ -39,13 +38,14 @@ class RAGDesktopApp:
         self.app.configure(fg_color=COLOR_SURFACE)
 
         self._setup_ui_components()
-        
         self._spinner_job = None
         self._spinner_frame = 0
 
     def _setup_ui_components(self) -> None:
-        """Initialise et dispose tous les composants graphiques."""
-        self.header = ctk.CTkFrame(self.app, height=70, fg_color=COLOR_PRIMARY, corner_radius=0)
+        """Initialize and place all UI components."""
+        self.header = ctk.CTkFrame(
+            self.app, height=70, fg_color=COLOR_PRIMARY, corner_radius=0
+        )
         self.header.pack(fill="x")
 
         self.title = ctk.CTkLabel(
@@ -87,7 +87,9 @@ class RAGDesktopApp:
         self.input_field.bind("<Return>", lambda _event: self.ask_question())
 
         self.send_icon = self._load_icon("send.png")
-        self.spinner_frames = [self._load_icon(f"spinner_{i:02d}.png") for i in range(SPINNER_FRAME_COUNT)]
+        self.spinner_frames = [
+            self._load_icon(f"spinner_{i:02d}.png") for i in range(SPINNER_FRAME_COUNT)
+        ]
 
         self.ask_button = ctk.CTkButton(
             input_frame,
@@ -103,20 +105,17 @@ class RAGDesktopApp:
         self.ask_button.pack(side="left", padx=10)
 
         self.error_label = ctk.CTkLabel(
-            self.app,
-            text="",
-            text_color=COLOR_ERROR,
-            font=("Segoe UI", 12),
+            self.app, text="", text_color=COLOR_ERROR, font=("Segoe UI", 12)
         )
         self.error_label.pack(pady=(0, 10))
 
     def _load_icon(self, filename: str) -> ctk.CTkImage:
-        """Charge une icône depuis le dossier assets."""
+        """Load an icon from the assets directory."""
         image = Image.open(ICON_DIR / filename)
         return ctk.CTkImage(light_image=image, dark_image=image, size=(20, 20))
 
     def ask_question(self) -> None:
-        """Capture l'entrée utilisateur et lance le traitement asynchrone."""
+        """Capture user input and start the async processing thread."""
         query = self.input_field.get().strip()
         if not query:
             return
@@ -127,47 +126,46 @@ class RAGDesktopApp:
 
         def worker() -> None:
             try:
-                # Le pipeline retourne désormais un tuple (réponse, documents)
                 response, docs = self.rag.ask(query)
                 self.app.after(0, lambda: self._on_response(response, docs))
-            except Exception as exc:
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 self.app.after(0, lambda: self._on_error(exc))
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _clear_input(self) -> None:
-        """Réinitialise le champ de saisie et les erreurs."""
+        """Reset the input field and errors."""
         self.error_label.configure(text="")
         self.input_field.delete(0, END)
 
     def _display_user_message(self, query: str) -> None:
-        """Affiche le message de l'utilisateur dans la boîte de sortie."""
+        """Display the user's message in the output box."""
         self.output_box.insert(END, f"\nVous : {query}\n")
         self.output_box.see(END)
 
     def _format_sources(self, docs: list[Document]) -> str:
-        """Formate les métadonnées des documents pour l'affichage (Logique de présentation pure)."""
+        """Format document metadata for display."""
         if not docs:
             return ""
-        
+
         sources_str = "\n--- SOURCES UTILISEES ---\n"
         for i, doc in enumerate(docs):
             source_path = doc.metadata.get("source", "Inconnu")
             source_file = os.path.basename(source_path)
             text_preview = doc.page_content.replace('\n', ' ')[:100] + "..."
             sources_str += f"  > [{i+1}] {source_file} -- {text_preview}\n"
-        
+
         sources_str += "-" * 40 + "\n"
         return sources_str
 
     def _display_assistant_message(self, response: str, docs: list[Document]) -> None:
-        """Affiche la réponse de l'assistant et ses sources."""
+        """Display the assistant's response and its sources."""
         self.output_box.insert(END, f"Assistant : {response}\n")
         self.output_box.insert(END, self._format_sources(docs))
         self.output_box.see(END)
 
     def _set_loading(self, loading: bool) -> None:
-        """Gère l'état de chargement de l'interface (désactivation inputs + spinner)."""
+        """Manage the loading state of the interface (disable inputs + spinner)."""
         state = "disabled" if loading else "normal"
         self.input_field.configure(state=state)
         self.ask_button.configure(state=state)
@@ -182,23 +180,23 @@ class RAGDesktopApp:
             self.ask_button.configure(image=self.send_icon)
 
     def _animate_spinner(self) -> None:
-        """Gère l'animation du bouton de chargement."""
+        """Manage the loading button animation."""
         self.ask_button.configure(image=self.spinner_frames[self._spinner_frame])
         self._spinner_frame = (self._spinner_frame + 1) % SPINNER_FRAME_COUNT
         self._spinner_job = self.app.after(SPINNER_INTERVAL_MS, self._animate_spinner)
 
     def _on_response(self, response: str, docs: list[Document]) -> None:
-        """Callback de succès : arrête le chargement et affiche le résultat."""
+        """Success callback: stop loading and display the result."""
         self._set_loading(False)
         self._display_assistant_message(response, docs)
 
     def _on_error(self, exc: Exception) -> None:
-        """Callback d'erreur : arrête le chargement et affiche l'erreur."""
+        """Error callback: stop loading and display the error."""
         self._set_loading(False)
         self.error_label.configure(
             text=f"Erreur : {exc}. Vérifie qu'Ollama est lancé, puis réessaie."
         )
 
     def run(self) -> None:
-        """Lance la boucle principale de l'application."""
+        """Launch the main loop of the application."""
         self.app.mainloop()
