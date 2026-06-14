@@ -1,167 +1,190 @@
 # Local RAG Desktop
 
-A fully offline desktop application for querying your documents using a local AI. No data ever leaves your machine.
+A fully local desktop application for querying your documents with on-device AI, without sending data to the cloud.
 
----
+Local RAG Desktop turns a collection of PDFs into a searchable knowledge base on your machine. The goal is simple: deliver reliable, cited, and fast answers while keeping both your documents and your conversations local.
 
-## How It Works
+## Why this project
 
-Before diving into the tech, here is how the AI reads and answers your documents, step by step:
+Most document assistants promise accuracy, but often depend on external APIs or produce answers that are too generic. This project takes the opposite approach: it prioritizes privacy, traceability, and relevance.
 
-### 1. The Open-Book Exam (RAG)
-Instead of letting the AI guess the answer from its memory (which causes hallucinations), we use **RAG (Retrieval-Augmented Generation)**. Think of it as an open-book exam: we first find the exact paragraph in your document, then we ask the AI to read only that paragraph to write the answer.
+It is built for use cases where data control is non-negotiable: internal documentation, research notes, domain-specific corpora, PDF reports, or personal knowledge bases.
 
-### 2. The Librarian & The Detective (Hybrid Search)
-When you search for a document, you need two things:
-*   **Semantic Search (The Librarian):** Understands the *meaning* of your question ("signs of lying") even if the text says "deception indicators".
-*   **BM25 Keyword Search (The Detective):** Finds exact words ("Tony Blair") that the Librarian might miss.
-We combine both to find the best possible excerpts.
+## What the application delivers
 
-### 3. The Bouncer (Reranking)
-Our search retrieves 20+ excerpts. Some are great, some are irrelevant. The **Reranker** acts like a bouncer: it reads all of them specifically against your question and keeps only the top 4 most relevant ones. Quality over quantity.
+- 100% local execution through Ollama.
+- No API keys required.
+- No data sent to third-party services.
+- Answers grounded in passages actually retrieved from your documents.
+- Natural follow-up questions supported through conversational context.
+- An advanced RAG pipeline with hybrid search, reranking, and parent-child retrieval.
 
-### 4. Reading the Index, then the Chapter (Parent-Child Chunking)
-If we only feed the AI a random sentence, it misses the context. If we feed it whole pages, it gets lost. 
-Our solution: We index **small chunks** (Child) for precise searching, but when we find a match, we give the AI the **whole paragraph** (Parent) it belongs to. It’s like finding a word in the index, then reading the full chapter.
+## How it works
 
-### 5. The Translator (Query Rewriting)
-If you ask *"What about its implications?"* after a question about lying, the AI might get confused. Our system uses a fast LLM to rewrite your follow-up into a standalone question: *"What are the implications of the signs of lying?"* before searching. 
+The application follows a retrieval pipeline designed to reduce hallucinations and improve answer quality.
 
-### 6. The Fact-Checker (Anti-Hallucination)
-The AI is strictly forbidden from using its own memory. If the answer isn't in the provided text, it must say *"The documents do not contain this information."* It must also cite its sources `[1]` for every claim it makes.
+### 1. Document ingestion
 
----
+PDF files placed in `documents/` are read, cleaned, and split into usable segments. The system then generates embeddings and stores the representations in a local vector database.
+
+### 2. Hybrid search
+
+When a question is asked, the engine combines two complementary approaches:
+
+- Semantic search to retrieve passages close to the meaning of the query.
+- BM25 lexical search to capture exact keywords, named entities, and specific expressions.
+
+This combination improves recall without sacrificing precision.
+
+### 3. Reranking
+
+The first retrieved results are not equally useful. A reranker reevaluates the excerpts against the query and keeps only the most relevant passages for final generation.
+
+### 4. Parent-child chunking
+
+The system indexes small segments for precise retrieval, but sends a larger text block to the model when generating an answer. This preserves context without weakening relevance.
+
+### 5. Query rewriting
+
+For follow-up questions, a rewriting step converts an implicit request into a standalone query. This helps the system resolve contextual references and maintain a natural conversation flow.
+
+### 6. Constrained generation
+
+The generation model answers only from the supplied context. If the information does not appear in the retrieved documents, the application must say so explicitly instead of inventing an answer.
 
 ## Features
 
--   **100% Offline & Private:** Runs entirely on Ollama. No API keys, no data sent to the cloud.
--   **Conversational Memory:** Ask follow-up questions naturally; the system understands the context.
--   **Sourced Answers:** Every response shows the exact document chunks used to generate it.
--   **Advanced RAG Pipeline:** Hybrid Search, Flashrank Reranking, Parent-Child retrieval, and LLM Query Rewriting out of the box.
+- Source-grounded answers based on uploaded documents.
+- Conversational memory for follow-up questions.
+- Fully offline execution on a local machine.
+- Desktop interface built with CustomTkinter.
+- Local vector storage powered by ChromaDB.
+- An advanced RAG pipeline that is ready to extend.
 
----
-
-## Architecture
+## Project architecture
 
 ```text
 local-rag-desktop/
 │
 ├── app/
-│   ├── config.py              # Models configuration (LLM & Embeddings)
+│   ├── config.py              # Model configuration (LLM and embeddings)
 │   ├── ingestion/
-│   │   ├── document_loader.py # PDF extraction (PyMuPDF)
-│   │   ├── text_splitter.py   # Parent-Child chunking logic
-│   │   ├── embedder.py        # Ollama embeddings
+│   │   ├── document_loader.py # PDF extraction with PyMuPDF
+│   │   ├── text_splitter.py   # Parent-child chunking logic
+│   │   ├── embedder.py        # Embedding generation through Ollama
 │   │   ├── vector_store.py    # ChromaDB management
 │   │   └── ingest.py          # Ingestion pipeline
 │   │
 │   ├── rag/
-│   │   ├── retriever.py       # Hybrid Search + Reranking + Parent expansion
-│   │   ├── generator.py       # LLM generation & Query Rewriting
-│   │   └── rag_pipeline.py    # Orchestrator with anti-hallucination prompts
+│   │   ├── retriever.py       # Hybrid search, reranking, and parent expansion
+│   │   ├── generator.py       # Generation and query rewriting
+│   │   └── rag_pipeline.py    # Orchestration and anti-hallucination guardrails
 │   │
 │   └── ui/
-│       └── desktop.py         # CustomTkinter GUI
+│       └── desktop.py         # CustomTkinter desktop interface
 │
 ├── documents/                 # Drop your PDFs here
-├── db/                        # Local Chroma vector store (auto-generated)
+├── db/                        # Local vector database generated automatically
 │
-├── main_ingest.py             # Step 1: Ingest documents
-├── main.py                    # Step 2: Launch the app
+├── main_ingest.py             # Step 1: ingest documents
+├── main.py                    # Step 2: launch the application
 ├── requirements.txt
 └── README.md
 ```
 
+## Tech stack
+
+| Layer | Technology | Role |
+|-------|------------|------|
+| Language | Python 3.10+ | Application logic |
+| RAG orchestration | LangChain | Pipeline construction |
+| Vector database | ChromaDB | Vector storage and retrieval |
+| Lexical search | BM25 (`rank-bm25`) | Exact keyword matching |
+| Reranking | FlashRank | Sorting passages by relevance |
+| LLM runtime | Ollama | Local model execution |
+| Generation model | Qwen 2.5 7B | Answer generation and query rewriting |
+| Embedding model | Nomic Embed Text | Text vectorization |
+| PDF processing | PyMuPDF | Text extraction |
+| Interface | CustomTkinter | Desktop application |
 
 ## Installation
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/MrPanda225/local-rag-desktop.git
 cd local-rag-desktop
 ```
 
-**2. Create and activate a virtual environment**
+### 2. Create a virtual environment
 
 ```bash
 python -m venv venv
+```
 
-# Windows
+### 3. Activate the environment
+
+**Windows**
+
+```bash
 venv\Scripts\activate
+```
 
-# Linux / macOS
+**Linux / macOS**
+
+```bash
 source venv/bin/activate
 ```
 
-**3. Install dependencies**
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+## Ollama setup
 
-## Ollama Setup
-
-Download and install [Ollama](https://ollama.com/download), then pull the required models:
+Install [Ollama](https://ollama.com/download), then download the required models.
 
 ```bash
-# The fast, smart model for generation and query rewriting
 ollama pull qwen2.5:7b-instruct-q4_K_M
-
-# The model that transforms text into vectors (meaning)
 ollama pull nomic-embed-text
 ```
 
----
+## Quick start
 
-## Usage
-
-**Step 1 — Add your documents**
+### 1. Add documents
 
 Place your PDF files in the `documents/` folder.
 
-**Step 2 — Run ingestion**
+### 2. Run ingestion
 
 ```bash
 python main_ingest.py
 ```
-*This extracts the text, cuts it into Parent/Child chunks, generates embeddings, and stores everything in the local `db/` folder.*
 
-**Step 3 — Launch the application**
+This step extracts text, builds parent-child chunks, computes embeddings, and fills the local `db/` database.
+
+### 3. Launch the application
 
 ```bash
 python main.py
 ```
 
-Ask questions, request details, and follow up naturally. The AI will answer based strictly on your documents and show you its sources.
+You can then ask a question, request clarification, or continue with follow-up prompts. Answers are grounded strictly in passages retrieved from your documents.
 
----
+## Use cases
 
-## Tech Stack
+- Query a domain-specific PDF collection without relying on a cloud service.
+- Explore local technical documentation with cited answers.
+- Build a private document assistant for research or internal teams.
+- Validate information quickly inside a specialized corpus.
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Language | Python 3.10+ | Core logic |
-| RAG Framework | LangChain | Pipeline orchestration |
-| Vector Store | ChromaDB | Storing & searching embeddings |
-| Sparse Search | BM25 (rank-bm25) | Exact keyword matching |
-| Reranking | FlashRank | Sorting search results by relevance |
-| LLM Runtime | Ollama | 100% local AI inference |
-| LLM Model | Qwen 2.5 7B | Answer generation & Query rewriting |
-| Embeddings | Nomic Embed Text | Transforming text into vectors |
-| PDF Processing | PyMuPDF | High-quality text extraction |
-| Desktop UI | CustomTkinter | Modern desktop interface |
+## Roadmap
 
----
-
-## Possible Improvements
-
-- [ ] UI: Dark / light mode toggle
-- [ ] UI: Chat bubble layout instead of raw text
-- [ ] UI: PDF import button directly from the interface
-- [ ] Core: Streaming responses (token by token)
-- [ ] Core: OCR correction pipeline for scanned PDFs
-- [ ] API: FastAPI wrapper for web integration
-```
+- [ ] Add dark mode and light mode.
+- [ ] Improve conversation rendering with chat bubbles.
+- [ ] Allow PDF import directly from the interface.
+- [ ] Add streaming responses.
+- [ ] Integrate an OCR pipeline for scanned PDFs.
+- [ ] Expose a FastAPI wrapper for web integration.
